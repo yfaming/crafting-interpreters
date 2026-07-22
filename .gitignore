@@ -1,2 +1,6 @@
 *.class
+*.jar
+
+jlox/target/
+
 .zed/settings.json

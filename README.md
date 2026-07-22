@@ -1,4 +1,4 @@
-crafting-interpreters
+Crafting Interpreters
 =====================
 
-Code for [Crafting Interpreters](https://craftinginterpreters.com/) by Robert Nystrom.
+Implementations of Lox interpreter from [Crafting Interpreters](https://craftinginterpreters.com/).

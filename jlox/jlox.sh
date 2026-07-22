@@ -1,1 +1,2 @@
-javac com/craftinginterpreters/lox/Lox.java && java com.craftinginterpreters.lox.Lox
+# Compile and run jlox interpreter.
+mvn compile && java -cp target/classes com.craftinginterpreters.lox.Lox

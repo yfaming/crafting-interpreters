@@ -1,15 +1,16 @@
 package com.craftinginterpreters.lox;
 
-import java.awt.print.Book;
+import static com.craftinginterpreters.lox.TokenType.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.craftinginterpreters.lox.TokenType.*;
-
 public class Scanner {
+
     private static final Map<String, TokenType> keywords;
+
     static {
         keywords = new HashMap<>();
         keywords.put("and", AND);
@@ -29,7 +30,6 @@ public class Scanner {
         keywords.put("var", VAR);
         keywords.put("while", WHILE);
     }
-
 
     private final String source;
     private final List<Token> tokens = new ArrayList<>();
@@ -51,23 +51,39 @@ public class Scanner {
         return tokens;
     }
 
-    private static boolean isWhitespace(char c) {
-        return c == ' ' || c == '\t' || c == '\r' || c == '\n';
-    }
-
     private void scanToken() {
         char c = advance();
         switch (c) {
-            case '(': addToken(LEFT_PAREN); break;
-            case ')': addToken(RIGHT_PAREN); break;
-            case '{': addToken(LEFT_BRACE); break;
-            case '}': addToken(RIGHT_BRACE); break;
-            case ',': addToken(COMMA); break;
-            case '.': addToken(DOT); break;
-            case '-': addToken(MINUS); break;
-            case '+': addToken(PLUS); break;
-            case ';': addToken(SEMICOLON); break;
-            case '*': addToken(STAR); break;
+            case '(':
+                addToken(LEFT_PAREN);
+                break;
+            case ')':
+                addToken(RIGHT_PAREN);
+                break;
+            case '{':
+                addToken(LEFT_BRACE);
+                break;
+            case '}':
+                addToken(RIGHT_BRACE);
+                break;
+            case ',':
+                addToken(COMMA);
+                break;
+            case '.':
+                addToken(DOT);
+                break;
+            case '-':
+                addToken(MINUS);
+                break;
+            case '+':
+                addToken(PLUS);
+                break;
+            case ';':
+                addToken(SEMICOLON);
+                break;
+            case '*':
+                addToken(STAR);
+                break;
             // 注意，没有 /，需要和注释 // 一起考虑。
             case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);
@@ -91,26 +107,24 @@ public class Scanner {
                     addToken(SLASH);
                 }
                 break;
-
             case ' ':
             case '\r':
             case '\t':
                 // Ignore whitespace.
                 break;
-
             case '\n':
                 line++;
                 break;
-
-            case '"': string(); break;
-
+            case '"':
+                string();
+                break;
             default:
                 if (isDigit(c)) {
                     number();
                 } else if (isAlpha(c)) {
                     identifier();
                 } else {
-                Lox.error(line, "Unexpected character");
+                    Lox.error(line, "Unexpected character");
                 }
                 break;
         }
@@ -190,13 +204,11 @@ public class Scanner {
         if (current + 1 >= source.length()) {
             return '\0';
         }
-        return source.charAt(current+1);
+        return source.charAt(current + 1);
     }
 
     private boolean isAlpha(char c) {
-        return (c >= 'a' && c <= 'z') ||
-               (c >= 'A' && c <= 'Z') ||
-               c == '_';
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
     }
 
     private boolean isAlphaNumeric(char c) {
