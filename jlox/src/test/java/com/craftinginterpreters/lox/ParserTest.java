@@ -3,16 +3,19 @@ package com.craftinginterpreters.lox;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ParserTest {
-    record TestCase(String source, String expected) {}
+    record ParseExprTestCase(String source, String expected) {}
 
     private static String parseAndPrintExpr(String source) {
         var scanner = new Scanner(source);
         var tokens = scanner.scanTokens();
         var parser = new Parser(tokens);
 
-        var expr = parser.parse();
+        var expr = parser.expression();
         if (expr == null) {
             return null;
         }
@@ -22,13 +25,14 @@ public class ParserTest {
     @Test
     void testParseSimpleExprs() {
         var cases = List.of(
-            new TestCase("true != false", "(!= true false)"),
-            new TestCase("1 >= 2", "(>= 1.0 2.0)"),
-            new TestCase("3 - 4", "(- 3.0 4.0)"),
-            new TestCase("5 / 6", "(/ 5.0 6.0)"),
-            new TestCase("!true", "(! true)"),
-            new TestCase("-1", "(- 1.0)"),
-            new TestCase("(true)", "(group true)")
+            new ParseExprTestCase("true != false", "(!= true false)"),
+            new ParseExprTestCase("1 >= 2", "(>= 1.0 2.0)"),
+            new ParseExprTestCase("3 - 4", "(- 3.0 4.0)"),
+            new ParseExprTestCase("5 / 6", "(/ 5.0 6.0)"),
+            new ParseExprTestCase("!true", "(! true)"),
+            new ParseExprTestCase("-1", "(- 1.0)"),
+            new ParseExprTestCase("(true)", "(group true)"),
+            new ParseExprTestCase("a + b", "(+ a b)")
         );
 
         for (var testCase : cases) {
@@ -39,15 +43,51 @@ public class ParserTest {
     @Test
     void testParseComplexExprs() {
         var cases = List.of(
-            new TestCase("1 > 2 == false", "(== (> 1.0 2.0) false)"),
-            new TestCase("1 + 2 / 3", "(+ 1.0 (/ 2.0 3.0))"),
-            new TestCase("1 + -2", "(+ 1.0 (- 2.0))"),
-            new TestCase("true == !false", "(== true (! false))"),
-            new TestCase("(1 + 2) * 3", "(* (group (+ 1.0 2.0)) 3.0)")
+            new ParseExprTestCase("1 > 2 == false", "(== (> 1.0 2.0) false)"),
+            new ParseExprTestCase("1 + 2 / 3", "(+ 1.0 (/ 2.0 3.0))"),
+            new ParseExprTestCase("1 + -2", "(+ 1.0 (- 2.0))"),
+            new ParseExprTestCase("true == !false", "(== true (! false))"),
+            new ParseExprTestCase("(1 + 2) * 3", "(* (group (+ 1.0 2.0)) 3.0)"),
+            new ParseExprTestCase("(a + b) * c", "(* (group (+ a b)) c)")
         );
 
         for (var testCase : cases) {
             assertEquals(parseAndPrintExpr(testCase.source()), testCase.expected());
         }
+    }
+
+    Stmt parseSingleStmt(String source) {
+        var scanner = new Scanner(source);
+        var tokens = scanner.scanTokens();
+        var parser = new Parser(tokens);
+        List<Stmt> stmts = parser.parse();
+        return stmts.get(0);
+    }
+
+    @Test
+    void testParsePrintStmt() {
+        assertTrue(parseSingleStmt("print 123;") instanceof Stmt.Print);
+        assertTrue(parseSingleStmt("print 1+2-3*4/5;") instanceof Stmt.Print);
+        // missing `;`
+        // Because of error recovery, Parser::parse() does not throw excetion.
+        // It returns null instead.
+        assertNull(parseSingleStmt("print 1+2-3*4/5"));
+    }
+
+    @Test
+    void testExpressionStmt() {
+        assertTrue(parseSingleStmt("123;") instanceof Stmt.Expression);
+        assertTrue(parseSingleStmt("1+2-3*4/5;") instanceof Stmt.Expression);
+        assertTrue(parseSingleStmt("123;") instanceof Stmt.Expression);
+        // missing `;`
+        // Because of error recovery, Parser::parse() does not throw excetion.
+        // It returns null instead.
+        assertNull(parseSingleStmt("1+2"));
+    }
+
+    @Test
+    void testVarDeclarationStmt() {
+        assertTrue(parseSingleStmt("var a;") instanceof Stmt.Var);
+        assertTrue(parseSingleStmt("var a = true;") instanceof Stmt.Var);
     }
 }

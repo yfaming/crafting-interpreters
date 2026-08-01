@@ -7,80 +7,83 @@ import org.junit.jupiter.api.Test;
 
 public class InterpreterTest {
 
-    Object evaluate(String source) {
+    Object evaluateExpr(String source) {
         var scanner = new Scanner(source);
         var tokens = scanner.scanTokens();
         var parser = new Parser(tokens);
-        var expr = parser.parse();
+        var expr = parser.expression();
         var interpreter = new Interpreter();
         return interpreter.evaluate(expr);
     }
 
-    record TestCase(String source, Object expected) {}
+    record EvaluateExprTestCase(String source, Object expected) {}
 
-    void runTestCases(List<TestCase> testCases) {
+    void runEvaluateExprTestCases(List<EvaluateExprTestCase> testCases) {
         for (var testCase : testCases) {
-            assertEquals(evaluate(testCase.source()), testCase.expected);
+            assertEquals(evaluateExpr(testCase.source()), testCase.expected);
         }
     }
 
     @Test
     void testEvaluateLiteral() {
-        runTestCases(
+        runEvaluateExprTestCases(
             List.of(
-                new TestCase("true", true),
-                new TestCase("false", false),
-                new TestCase("1", 1.0),
-                new TestCase("\"hello, world!\"", "hello, world!")
+                new EvaluateExprTestCase("true", true),
+                new EvaluateExprTestCase("false", false),
+                new EvaluateExprTestCase("1", 1.0),
+                new EvaluateExprTestCase("\"hello, world!\"", "hello, world!")
             )
         );
     }
 
     @Test
     void testEvaluateUnaryExpr() {
-        runTestCases(
+        runEvaluateExprTestCases(
             List.of(
-                new TestCase("-1", -1.0),
-                new TestCase("!true", false),
-                new TestCase("!false", true)
+                new EvaluateExprTestCase("-1", -1.0),
+                new EvaluateExprTestCase("!true", false),
+                new EvaluateExprTestCase("!false", true)
             )
         );
     }
 
     @Test
     void testEvaluateBinaryExpr() {
-        runTestCases(
+        runEvaluateExprTestCases(
             List.of(
-                new TestCase("1 + 2", 3.0),
-                new TestCase("1 - 2", -1.0),
-                new TestCase("3 * 4", 12.0),
-                new TestCase("3 / 4", 0.75),
+                new EvaluateExprTestCase("1 + 2", 3.0),
+                new EvaluateExprTestCase("1 - 2", -1.0),
+                new EvaluateExprTestCase("3 * 4", 12.0),
+                new EvaluateExprTestCase("3 / 4", 0.75),
 
-                new TestCase("\"hello \" + \"world\"", "hello world"),
+                new EvaluateExprTestCase(
+                    "\"hello \" + \"world\"",
+                    "hello world"
+                ),
 
-                new TestCase("1 > 2", false),
-                new TestCase("1 >= 2", false),
-                new TestCase("2 > 1", true),
-                new TestCase("2 >= 1", true),
+                new EvaluateExprTestCase("1 > 2", false),
+                new EvaluateExprTestCase("1 >= 2", false),
+                new EvaluateExprTestCase("2 > 1", true),
+                new EvaluateExprTestCase("2 >= 1", true),
 
-                new TestCase("1 < 2", true),
-                new TestCase("1 <= 2", true),
-                new TestCase("2 < 1", false),
-                new TestCase("2 <= 1", false),
+                new EvaluateExprTestCase("1 < 2", true),
+                new EvaluateExprTestCase("1 <= 2", true),
+                new EvaluateExprTestCase("2 < 1", false),
+                new EvaluateExprTestCase("2 <= 1", false),
 
-                new TestCase("1 != 1", false),
-                new TestCase("true != true", false),
-                new TestCase("\"hello\" != \"hello\"", false),
-                new TestCase("nil != nil", false),
+                new EvaluateExprTestCase("1 != 1", false),
+                new EvaluateExprTestCase("true != true", false),
+                new EvaluateExprTestCase("\"hello\" != \"hello\"", false),
+                new EvaluateExprTestCase("nil != nil", false),
 
-                new TestCase("1 != 2", true),
-                new TestCase("1 != \"1\"", true),
-                new TestCase("1 != true", true),
-                new TestCase("1 != false", true),
-                new TestCase("\"1\" != true", true),
-                new TestCase("1 == 1", true),
-                new TestCase("1 == 2", false),
-                new TestCase("\"1\" == \"1\"", true)
+                new EvaluateExprTestCase("1 != 2", true),
+                new EvaluateExprTestCase("1 != \"1\"", true),
+                new EvaluateExprTestCase("1 != true", true),
+                new EvaluateExprTestCase("1 != false", true),
+                new EvaluateExprTestCase("\"1\" != true", true),
+                new EvaluateExprTestCase("1 == 1", true),
+                new EvaluateExprTestCase("1 == 2", false),
+                new EvaluateExprTestCase("\"1\" == \"1\"", true)
             )
         );
     }
@@ -89,7 +92,57 @@ public class InterpreterTest {
     void testEvaluateInvalidExpr() {
         var inputs = List.of("-true", "1 + \"whaaat\"", "2 < \"3\"");
         for (var input : inputs) {
-            assertThrows(RuntimeError.class, () -> evaluate(input));
+            assertThrows(RuntimeError.class, () -> evaluateExpr(input));
         }
+    }
+
+    Object executeAndEvaluateExpr(String code, String expr) {
+        // execute
+        var interpreter = new Interpreter();
+        List<Stmt> stmts = new Parser(new Scanner(code).scanTokens()).parse();
+        interpreter.interpret(stmts);
+        // evaluate
+        return interpreter.evaluate(
+            new Parser(new Scanner(expr).scanTokens()).expression()
+        );
+    }
+
+    record ExecuteAndEvaluateTestCase(
+        String code,
+        String expr,
+        Object expected
+    ) {}
+
+    void runExecuteAndEvaluateExprTestCases(
+        List<ExecuteAndEvaluateTestCase> testCases
+    ) {
+        for (var testCase : testCases) {
+            assertEquals(
+                executeAndEvaluateExpr(testCase.code(), testCase.expr()),
+                testCase.expected
+            );
+        }
+    }
+
+    @Test
+    void testEvaluateVarDeclaration() {
+        runExecuteAndEvaluateExprTestCases(
+            List.of(
+                new ExecuteAndEvaluateTestCase("var a;", "a", null),
+                new ExecuteAndEvaluateTestCase("var a = 1 + 2;", "a", 3.0),
+                new ExecuteAndEvaluateTestCase("var a = 2; var b = 3;", "a*b", 6.0)
+            )
+        );
+    }
+
+    @Test
+    void testAssignment() {
+        runExecuteAndEvaluateExprTestCases(
+            List.of(
+                new ExecuteAndEvaluateTestCase("var a; a = true;", "a", true),
+                new ExecuteAndEvaluateTestCase("var a = 1; a = 2;", "a", 2.0),
+                new ExecuteAndEvaluateTestCase("var a = 1; var a = 2;", "a", 2.0)
+            )
+        );
     }
 }

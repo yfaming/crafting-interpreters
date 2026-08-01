@@ -31,6 +31,27 @@ public class AstPrinterTest {
                     new Expr.Grouping(new Expr.Literal(45.67))
                 ),
                 "(* (- 123) (group 45.67))"
+            ),
+            new TestCase(
+                new Expr.Variable(
+                    new Token(TokenType.VAR, "var_name", null, 1)
+                ),
+                "var_name"
+            ),
+            new TestCase(
+                new Expr.Binary(
+                    new Expr.Variable(new Token(TokenType.VAR, "a", null, 1)),
+                    new Token(TokenType.PLUS, "+", null, 1),
+                    new Expr.Literal(1)
+                ),
+                "(+ a 1)"
+            ),
+            new TestCase(
+                new Expr.Assign(
+                    new Token(TokenType.IDENTIFIER, "a", null, 1),
+                    new Expr.Literal(1)
+                ),
+                "(set! a 1)"
             )
         );
         for (var testCase : cases) {

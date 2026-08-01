@@ -39,12 +39,12 @@ public class Lox {
     }
 
     private static void runPrompt() throws IOException {
-        // 只能读一行，怪不得 REPL 不好用。
         BufferedReader reader = new BufferedReader(
             new InputStreamReader(System.in)
         );
         for (;;) {
             System.out.print("> ");
+            // 一次只读一行，怪不得 REPL 不好用。
             String line = reader.readLine();
             if (line == null) {
                 System.out.println("eof");
@@ -60,12 +60,12 @@ public class Lox {
         List<Token> tokens = scanner.scanTokens();
 
         Parser parser = new Parser(tokens);
-        Expr expression = parser.parse();
+        List<Stmt> statements = parser.parse();
         if (hadError) {
             return;
         }
 
-        interpreter.interpret(expression);
+        interpreter.interpret(statements);
     }
 
     static void error(int line, String message) {
