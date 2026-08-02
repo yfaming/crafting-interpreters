@@ -32,7 +32,9 @@ public class ParserTest {
             new ParseExprTestCase("!true", "(! true)"),
             new ParseExprTestCase("-1", "(- 1.0)"),
             new ParseExprTestCase("(true)", "(group true)"),
-            new ParseExprTestCase("a + b", "(+ a b)")
+            new ParseExprTestCase("a + b", "(+ a b)"),
+            new ParseExprTestCase("a or b", "(or a b)"),
+            new ParseExprTestCase("a and b", "(and a b)")
         );
 
         for (var testCase : cases) {
@@ -48,11 +50,14 @@ public class ParserTest {
             new ParseExprTestCase("1 + -2", "(+ 1.0 (- 2.0))"),
             new ParseExprTestCase("true == !false", "(== true (! false))"),
             new ParseExprTestCase("(1 + 2) * 3", "(* (group (+ 1.0 2.0)) 3.0)"),
-            new ParseExprTestCase("(a + b) * c", "(* (group (+ a b)) c)")
+            new ParseExprTestCase("(a + b) * c", "(* (group (+ a b)) c)"),
+            new ParseExprTestCase("a or b or c", "(or (or a b) c)"),
+            new ParseExprTestCase("a and b and c", "(and (and a b) c)"),
+            new ParseExprTestCase("a and b or c", "(or (and a b) c)")
         );
 
         for (var testCase : cases) {
-            assertEquals(parseAndPrintExpr(testCase.source()), testCase.expected());
+            assertEquals(testCase.expected(), parseAndPrintExpr(testCase.source()));
         }
     }
 
@@ -89,5 +94,15 @@ public class ParserTest {
     void testVarDeclarationStmt() {
         assertTrue(parseSingleStmt("var a;") instanceof Stmt.Var);
         assertTrue(parseSingleStmt("var a = true;") instanceof Stmt.Var);
+    }
+
+    @Test
+    void testIfStmt() {
+        assertTrue(parseSingleStmt("if (true) 1; else 0;") instanceof Stmt.If);
+    }
+
+    @Test
+    void testWhileStmt() {
+        assertTrue(parseSingleStmt("while (true) { print \"stuck\"; }") instanceof Stmt.While);
     }
 }

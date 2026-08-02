@@ -145,4 +145,23 @@ public class InterpreterTest {
             )
         );
     }
+
+    @Test
+    void testWhileStmt() {
+        runExecuteAndEvaluateExprTestCases(
+            List.of(
+                new ExecuteAndEvaluateTestCase("var sum=0; var i=1; while (i<=100) { sum=sum+i; i=i+1; }", "sum", 5050.0)
+            )
+        );
+    }
+
+    @Test
+    void testForStmt() {
+        runExecuteAndEvaluateExprTestCases(
+            List.of(
+                new ExecuteAndEvaluateTestCase("var sum=0; for (var i=1; i<=100; i=i+1) { sum = sum + i; }", "sum", 5050.0)
+            )
+        );
+
+    }
 }
