@@ -34,7 +34,8 @@ public class ParserTest {
             new ParseExprTestCase("(true)", "(group true)"),
             new ParseExprTestCase("a + b", "(+ a b)"),
             new ParseExprTestCase("a or b", "(or a b)"),
-            new ParseExprTestCase("a and b", "(and a b)")
+            new ParseExprTestCase("a and b", "(and a b)"),
+            new ParseExprTestCase("add(a, b, 1)", "(add a b 1.0)")
         );
 
         for (var testCase : cases) {
@@ -53,7 +54,8 @@ public class ParserTest {
             new ParseExprTestCase("(a + b) * c", "(* (group (+ a b)) c)"),
             new ParseExprTestCase("a or b or c", "(or (or a b) c)"),
             new ParseExprTestCase("a and b and c", "(and (and a b) c)"),
-            new ParseExprTestCase("a and b or c", "(or (and a b) c)")
+            new ParseExprTestCase("a and b or c", "(or (and a b) c)"),
+            new ParseExprTestCase("- -1", "(- (- 1.0))")
         );
 
         for (var testCase : cases) {

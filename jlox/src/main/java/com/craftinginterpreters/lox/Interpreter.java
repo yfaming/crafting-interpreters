@@ -1,12 +1,75 @@
 package com.craftinginterpreters.lox;
 
 import static com.craftinginterpreters.lox.TokenType.OR;
-import static com.craftinginterpreters.lox.TokenType.values;
 
+import java.util.ArrayList;
 import java.util.List;
 
+/*
+Interpreter 类有 globals 和 environment 两个类型为 Environment 的字段。值得注意。
+- globals 表示全局 Environment。
+- Interpreter.environment 表示 Interpreter 的当前 environment。
+
+刚开始运行时，它们是同一个对象。表示 Interpreter 处于全局作用域。
+
+随着 Interpreter 进入/退出新的作用域，Interpeter.environment 会随之变化。
+
+进入新的作用域时(executeBlock)，会以当前 environment 创建新的 Environment，并以之取代 Interpreter 的当前 environment。
+退出作用域时，Interpreter.environment 会恢复为之前的 Environment。
+
+定义变量(visitVarStmt)和函数(visitFunctionStmt)时，均是将名字定义在 Interpreter.environment 即当前 Environment 里面。
+这意味着，如果我们在全局定义变量和函数，那么它们就是全局作用域可见的；如果在某个局部作用域里定义变量和函数，它们就是局部作用域可见的。
+
+```lox
+{
+	fun localFn() {
+		print "localFn";
+	}
+
+	localFn();
+}
+
+// Error: Undefined variable 'localFn'.
+localFn();
+```
+
+比如，上面这段代码中，`localFn` 只在代码块里面可见。
+
+我们还可以在函数内部定义函数，它们只在函数内部可见。
+
+```lox
+fun fn() {
+	fun inner() {
+		print "inner";
+	}
+
+	inner();
+}
+
+// Error: Undefined variable 'inner'.
+inner();
+```
+*/
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-    private Environment environment = new Environment();
+    final Environment globals = new Environment();
+    private Environment environment = globals;
+
+    Interpreter() {
+        globals.define("clock", new LoxCallable() {
+            @Override
+            public int arity() { return 0;}
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return (double)System.currentTimeMillis() / 1000.0;
+            }
+
+            @Override
+            public String toString() {
+                return "<native fn: clock>";
+            }
+        });
+    }
 
     void interpret(List<Stmt> statements) {
         try {
@@ -51,6 +114,13 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitFunctionStmt(Stmt.Function stmt) {
+        LoxFunction function = new LoxFunction(stmt, environment);
+        environment.define(stmt.name.lexeme, function);
+        return null;
+    }
+
+    @Override
     public Void visitIfStmt(Stmt.If stmt) {
         if (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.thenBranch);
@@ -65,6 +135,15 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
         return null;
+    }
+
+    @Override
+    public Void visitReturnStmt(Stmt.Return stmt) {
+        Object value = null;
+        if (stmt.value != null) {
+            value = evaluate(stmt.value);
+        }
+        throw new Return(value);
     }
 
     @Override
@@ -86,7 +165,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
-    public  Object visitAssignExpr(Expr.Assign expr) {
+    public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.value);
         environment.assign(expr.name, value);
         return value;
@@ -104,7 +183,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             if (isTruthy(left)) {
                 return left;
             }
-        } else { // AND
+        } else {
+            // AND
             if (!isTruthy(left)) {
                 return left;
             }
@@ -200,6 +280,31 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         // Unreachable.
         return null;
+    }
+
+    @Override
+    public Object visitCallExpr(Expr.Call expr) {
+        Object callee = evaluate(expr.callee);
+        List<Object> arguments = new ArrayList<>();
+        for (Expr argument : expr.arguments) {
+            arguments.add(evaluate(argument));
+        }
+
+        if (!(callee instanceof LoxCallable)) {
+            throw new RuntimeError(
+                expr.paren,
+                "Can only call functions and classes."
+            );
+        }
+
+        LoxCallable function = (LoxCallable) callee;
+        if (arguments.size() != function.arity()) {
+            throw new RuntimeError(
+                expr.paren,
+                "Expected " + function.arity() + " arguments but got " + arguments.size() + "."
+            );
+        }
+        return function.call(this, arguments);
     }
 
     // Lox follows Ruby's rule:

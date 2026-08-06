@@ -1,0 +1,11 @@
+var lang = "Lox";
+
+fun printLang() {
+	print lang;
+}
+
+
+{
+	var lang = "Java";
+	printLang();
+}

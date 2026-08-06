@@ -1,7 +1,5 @@
 package com.craftinginterpreters.lox;
 
-import static com.craftinginterpreters.lox.TokenType.values;
-
 import java.util.HashMap;
 import java.util.Map;
 

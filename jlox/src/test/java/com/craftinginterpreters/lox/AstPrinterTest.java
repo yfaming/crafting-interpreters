@@ -52,6 +52,21 @@ public class AstPrinterTest {
                     new Expr.Literal(1)
                 ),
                 "(set! a 1)"
+            ),
+            // add(1, 2, 3)
+            new TestCase(
+                new Expr.Call(
+                    new Expr.Variable(
+                        new Token(TokenType.IDENTIFIER, "add", null, 1)
+                    ),
+                    new Token(TokenType.RIGHT_PAREN, ")", null, 1),
+                    List.of(
+                        new Expr.Literal(1),
+                        new Expr.Literal(2),
+                        new Expr.Literal(3)
+                    )
+                ),
+                "(add 1 2 3)"
             )
         );
         for (var testCase : cases) {
