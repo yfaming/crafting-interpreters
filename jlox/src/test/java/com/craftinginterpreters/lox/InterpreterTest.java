@@ -97,9 +97,10 @@ public class InterpreterTest {
     }
 
     Object executeAndEvaluateExpr(String code, String expr) {
-        // execute
-        var interpreter = new Interpreter();
         List<Stmt> stmts = new Parser(new Scanner(code).scanTokens()).parse();
+        var interpreter = new Interpreter();
+        Resolver resolver = new Resolver(interpreter);
+        resolver.resolve(stmts);
         interpreter.interpret(stmts);
         // evaluate
         return interpreter.evaluate(
