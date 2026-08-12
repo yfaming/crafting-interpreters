@@ -163,6 +163,15 @@ public class InterpreterTest {
                 new ExecuteAndEvaluateTestCase("var sum=0; for (var i=1; i<=100; i=i+1) { sum = sum + i; }", "sum", 5050.0)
             )
         );
+    }
+
+    @Test
+    void testInstanceField() {
+        runExecuteAndEvaluateExprTestCases(
+            List.of(
+                new ExecuteAndEvaluateTestCase("class Dog {} var dog = Dog(); dog.name = \"wangcai\";", "dog.name", "wangcai")
+            )
+        );
 
     }
 }

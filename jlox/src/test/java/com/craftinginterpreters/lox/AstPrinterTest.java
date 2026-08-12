@@ -53,7 +53,6 @@ public class AstPrinterTest {
                 ),
                 "(set! a 1)"
             ),
-            // add(1, 2, 3)
             new TestCase(
                 new Expr.Call(
                     new Expr.Variable(
@@ -67,6 +66,36 @@ public class AstPrinterTest {
                     )
                 ),
                 "(add 1 2 3)"
+            ),
+            new TestCase(
+                new Expr.Get(
+                    new Expr.Variable(
+                        new Token(TokenType.IDENTIFIER, "a", null, 1)
+                    ),
+                    new Token(TokenType.IDENTIFIER, "b", null, 1)
+                ),
+                "(field-ref a b)"
+            ),
+            new TestCase(
+                new Expr.Set(
+                    new Expr.Variable(
+                        new Token(TokenType.IDENTIFIER, "a", null, 1)
+                    ),
+                    new Token(TokenType.IDENTIFIER, "b", null, 1),
+                    new Expr.Literal(false)
+                ),
+                "(field-set! a b false)"
+            ),
+            new TestCase(
+                new Expr.This(new Token(TokenType.THIS, "this", null, 1)),
+                "this"
+            ),
+            new TestCase(
+                new Expr.Get(
+                    new Expr.This(new Token(TokenType.THIS, "this", null, 1)),
+                    new Token(TokenType.IDENTIFIER, "a", null, 1)
+                ),
+                "(field-ref this a)"
             )
         );
         for (var testCase : cases) {

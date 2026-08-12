@@ -1,0 +1,17 @@
+class DevonshireCream {
+  serveOn() {
+    return "Scones";
+  }
+}
+
+print DevonshireCream;
+
+var ins = DevonshireCream();
+
+ins.abc = "abc";
+print ins.abc;
+
+ins.abc = "def";
+print ins.abc;
+
+print ins.serveOn();
