@@ -96,6 +96,13 @@ public class AstPrinterTest {
                     new Token(TokenType.IDENTIFIER, "a", null, 1)
                 ),
                 "(field-ref this a)"
+            ),
+            new TestCase(
+                new Expr.Super(
+                    new Token(TokenType.SUPER, "super", null, 1),
+                    new Token(TokenType.IDENTIFIER, "cook", null, 1)
+                ),
+                "(super cook)"
             )
         );
         for (var testCase : cases) {
