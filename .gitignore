@@ -4,3 +4,7 @@
 jlox/target/
 
 .zed/settings.json
+
+*.o
+*.d
+clox/clox
