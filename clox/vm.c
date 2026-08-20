@@ -31,6 +31,8 @@ static InterpretResult run() {
         push(a op b); \
     } while (false)
 
+    printf("\n== executing bytecode ==\n");
+    printf("          [ ]");
     for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
         printf("          ");
@@ -69,7 +71,6 @@ static InterpretResult run() {
 #undef BINARY_OP
 }
 
-
 void freeVM() {
 }
 
@@ -84,6 +85,18 @@ Value pop() {
 }
 
 InterpretResult interpret(const char* source) {
-    compile(source);
-    return INTERPRET_OK;
+    Chunk chunk;
+    initChunk(&chunk);
+
+    if (!compile(source, &chunk)) {
+        freeChunk(&chunk);
+        return INTERPRET_COMPILE_ERROR;
+    }
+
+    vm.chunk = &chunk;
+    vm.ip = vm.chunk->code;
+
+    InterpretResult result = run();
+    freeChunk(&chunk);
+    return result;
 }
