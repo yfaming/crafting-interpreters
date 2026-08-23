@@ -14,6 +14,7 @@ typedef struct {
     // `stackTop` points just past the top item.
     // Or, `stackTop` points to where the next value to be pushed will go.
     Value* stackTop;
+    Obj* objects;
 } VM;
 
 typedef enum {
@@ -21,6 +22,8 @@ typedef enum {
     INTERPRET_COMPILE_ERROR,
     INTERPRET_RUNTIME_ERROR
 } InterpretResult;
+
+extern VM vm;
 
 void initVM();
 void freeVM();
