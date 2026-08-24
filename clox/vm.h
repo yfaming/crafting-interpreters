@@ -2,6 +2,7 @@
 #define clox_vm_h
 
 #include "chunk.h"
+#include "table.h"
 #include "value.h"
 
 #define  STACK_MAX 2560
@@ -14,6 +15,7 @@ typedef struct {
     // `stackTop` points just past the top item.
     // Or, `stackTop` points to where the next value to be pushed will go.
     Value* stackTop;
+    Table strings;
     Obj* objects;
 } VM;
 

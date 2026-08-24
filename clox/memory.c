@@ -11,6 +11,7 @@
 // - oldSize!=0, newSize<oldSize: Shrink existing allocation.
 // - oldSize!=0, newSize>oldSize: Grow existing allocation.
 void* reallocate(void *pointer, size_t oldSize, size_t newSize) {
+    (void)oldSize;
     if (newSize == 0) {
         free(pointer);
         return NULL;
