@@ -15,6 +15,7 @@ typedef struct {
     // `stackTop` points just past the top item.
     // Or, `stackTop` points to where the next value to be pushed will go.
     Value* stackTop;
+    Table globals;
     Table strings;
     Obj* objects;
 } VM;

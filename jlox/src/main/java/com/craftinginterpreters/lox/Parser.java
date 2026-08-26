@@ -502,7 +502,7 @@ class Parser {
                 case WHILE:
                 case PRINT:
                 case RETURN:
-                    break;
+                    return;
             }
 
             advance();
