@@ -83,6 +83,8 @@ static void concatenate() {
 static InterpretResult run() {
 #define READ_BYTE() (*vm.ip++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
+#define READ_SHORT() \
+    (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 // a - b 求值过程，先对 a 求值并入栈，然后对 b 求值并入栈。
 // 最后再执行减法操。此时 b 在栈顶，a 在下面。
@@ -198,6 +200,23 @@ static InterpretResult run() {
                 printValue(pop());
                 printf("\n");
                 break;
+            case OP_JUMP: {
+                uint16_t offset = READ_SHORT();
+                vm.ip += offset;
+                break;
+            }
+            case OP_JUMP_IF_FALSE: {
+                uint16_t offset = READ_SHORT();
+                if (isFalsey(peek(0))) {
+                    vm.ip += offset;
+                }
+                break;
+            }
+            case OP_LOOP: {
+                uint16_t offset = READ_SHORT();
+                vm.ip -= offset;
+                break;
+            }
             case OP_RETURN: {
                 // Exit interpreter.
                 return INTERPRET_OK;
@@ -206,6 +225,7 @@ static InterpretResult run() {
     }
 
 #undef READ_BYTE
+#undef READ_SHORT
 #undef READ_CONSTANT
 #undef READ_STRING
 #undef BINARY_OP
