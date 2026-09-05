@@ -1,5 +1,5 @@
 CC := cc
-CFLAGS := -Wall -Wextra -O2 -Iinclude -MMD -MP
+CFLAGS := -Wall -Wextra -O2 -Iinclude -MMD -MP -g3
 
 TARGET := clox
 BUILD_DIR := build
