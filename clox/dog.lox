@@ -1,0 +1,15 @@
+class Dog {
+	init(name) {
+		this.name = name;
+	}
+
+	bark() {
+		print "Warning! You're entering @" + this.name + "'s territory!";
+	}
+}
+
+var dog = Dog("Wangcai");
+dog.bark();
+
+dog.name = "MeowMeow";
+dog.bark();

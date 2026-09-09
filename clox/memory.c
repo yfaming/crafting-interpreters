@@ -6,6 +6,7 @@
 #include "memory.h"
 #include "chunk.h"
 #include "object.h"
+#include "table.h"
 #include "value.h"
 #include "vm.h"
 
@@ -88,12 +89,24 @@ static void markArray(ValueArry* array) {
 
 static void blackenObject(Obj* object) {
 #ifdef DEBUG_LOG_GC
-    printf("%p blocken ", (void*)object);
+    printf("%p blacken ", (void*)object);
     printValue(OBJ_VAL(object));
     printf("\n");
 #endif
 
     switch (object->type) {
+        case OBJ_BOUND_METHOD: {
+            ObjBoundMethod* bound = (ObjBoundMethod*)object;
+            markValue(bound->receiver);
+            markObject((Obj*)bound->method);
+            break;
+        }
+        case OBJ_CLASS: {
+            ObjClass* klass = (ObjClass*)object;
+            markObject((Obj*)klass->name);
+            markTable(&klass->methods);
+            break;
+        }
         case OBJ_CLOSURE: {
             ObjClosure* closure = (ObjClosure*)object;
             markObject((Obj*)closure->function);
@@ -106,6 +119,12 @@ static void blackenObject(Obj* object) {
             ObjFunction* function = (ObjFunction*)object;
             markObject((Obj*)function->name);
             markArray(&function->chunk.constants);
+            break;
+        }
+        case OBJ_INSTANCE: {
+            ObjInstance* instance = (ObjInstance*)object;
+            markObject((Obj*)instance->klass);
+            markTable(&instance->fields);
             break;
         }
         case OBJ_UPVALUE:
@@ -123,6 +142,15 @@ static void freeObject(Obj* object) {
 #endif
 
     switch (object->type) {
+        case OBJ_BOUND_METHOD:
+            FREE(ObjBoundMethod, object);
+            break;
+        case OBJ_CLASS: {
+            ObjClass* klass = (ObjClass*)object;
+            freeTable(&klass->methods);
+            FREE(ObjClass, object);
+            break;
+        }
         case OBJ_CLOSURE: {
             // ObjClosure does not own the ObjUpvalue objects themselves,
             // but it does own the array containing pointers to those upvalues.
@@ -135,6 +163,12 @@ static void freeObject(Obj* object) {
             ObjFunction* function = (ObjFunction*)object;
             freeChunk(&function->chunk);
             FREE(ObjFunction, object);
+            break;
+        }
+        case OBJ_INSTANCE: {
+            ObjInstance* instance = (ObjInstance*)object;
+            freeTable(&instance->fields);
+            FREE(ObjInstance, object);
             break;
         }
         case OBJ_NATIVE: {
@@ -168,6 +202,7 @@ static void markRoots() {
 
     markTable(&vm.globals);
     markCompilerRoots();
+    markObject((Obj*)vm.initString);
 }
 
 static void traceReferences() {
